@@ -1,19 +1,26 @@
 from django.db import models
+from django.utils.text import slugify
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 
-class Produto(models.Model):
-    nome = models.CharField(max_length=100)
-    descricao = models.TextField()
-    preco = models.DecimalField(max_digits=10, decimal_places=2)
-    criado_em = models.DateTimeField(auto_now_add=True)
+class Post(models.Model):
+    STATUS_CHOICES = (
+        ('rascunho', 'Rascunho'),
+        ('publicado', 'Publicado'),
+    )
+
+    titulo = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True, blank=True)
+    conteudo = models.TextField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='rascunho')
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_publicacao = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.nome
+        return self.titulo
 
-
-class Estoque(models.Model):
-    produto = models.ForeignKey(Produto, on_delete=models.CASCADE)
-    quantidade = models.IntegerField()
-    local = models.CharField(max_length=50)
-
-    def __str__(self):
-        return f"{self.produto.nome} - {self.quantidade}"
+# Signal para atualizar o slug automaticamente antes de salvar
+@receiver(pre_save, sender=Post)
+def gera_slug(sender, instance, *args, **kwargs):
+    if not instance.slug:
+        instance.slug = slugify(instance.titulo)
