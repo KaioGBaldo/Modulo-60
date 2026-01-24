@@ -1,16 +1,19 @@
 from django.contrib import admin
-from .models import Produto, Estoque
+from .models import Post
 
-
-@admin.register(Produto)
-class ProdutoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nome', 'preco', 'criado_em')
-    search_fields = ('nome',)
-    list_filter = ('criado_em',)
-
-
-@admin.register(Estoque)
-class EstoqueAdmin(admin.ModelAdmin):
-    list_display = ('id', 'produto', 'quantidade', 'local')
-    search_fields = ('produto__nome',)
-    list_filter = ('local',)
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    # Campos exibidos na lista
+    list_display = ('titulo', 'slug', 'status', 'data_criacao')
+    
+    # Filtros laterais
+    list_filter = ('status', 'data_criacao')
+    
+    # Campos de busca
+    search_fields = ('titulo', 'conteudo')
+    
+    # Faz o slug ser preenchido automaticamente enquanto você digita o título no Admin
+    prepopulated_fields = {'slug': ('titulo',)}
+    
+    # Permite editar o status diretamente na lista de posts
+    list_editable = ('status',)
