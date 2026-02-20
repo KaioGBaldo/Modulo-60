@@ -1,7 +1,6 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.utils.text import slugify
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
 
 class Post(models.Model):
     STATUS_CHOICES = (
@@ -11,16 +10,15 @@ class Post(models.Model):
 
     titulo = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True, blank=True)
-    conteudo = models.TextField()
+    autor = models.ForeignKey(User, on_delete=models.CASCADE)
+    corpo = models.TextField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='rascunho')
-    data_criacao = models.DateTimeField(auto_now_add=True)
-    data_publicacao = models.DateTimeField(auto_now=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.titulo)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.titulo
-
-# Signal para atualizar o slug automaticamente antes de salvar
-@receiver(pre_save, sender=Post)
-def gera_slug(sender, instance, *args, **kwargs):
-    if not instance.slug:
-        instance.slug = slugify(instance.titulo)
