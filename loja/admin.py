@@ -1,16 +1,13 @@
 from django.contrib import admin
-from .models import Produto, Estoque
+from .models import Post
 
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'slug', 'autor', 'status')
+    prepopulated_fields = {'slug': ('titulo',)} # Auxilia a Regra 2 no painel
 
-@admin.register(Produto)
-class ProdutoAdmin(admin.ModelAdmin):
-    list_display = ('id', 'nome', 'preco', 'criado_em')
-    search_fields = ('nome',)
-    list_filter = ('criado_em',)
-
-
-@admin.register(Estoque)
-class EstoqueAdmin(admin.ModelAdmin):
-    list_display = ('id', 'produto', 'quantidade', 'local')
-    search_fields = ('produto__nome',)
-    list_filter = ('local',)
+    def save_model(self, request, obj, form, change):
+        # Regra 5: Define o autor como o usuário logado
+        if not obj.pk: 
+            obj.autor = request.user
+        super().save_model(request, obj, form, change)
